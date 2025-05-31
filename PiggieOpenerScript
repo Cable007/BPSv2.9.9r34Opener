@@ -30,12 +30,27 @@ $(document).ready(function() {
             $('body').css('overflow', 'auto');
         });
     }
+
+    let breakOpening = false;
+
+    $(document).on('keydown', function(e) {
+    if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'd') {
+        breakOpening = true;
+        blacket.createToast?.({
+            title: "Opening Cancelled",
+            message: "Pack opening was cancelled.",
+            icon: "/content/blooks/Warn.webp",
+            time: 3000
+        });
+    }
+});
+    
     function showBulkPackModal() {
         let packOptions = '';
         if (typeof blacket !== 'undefined' && blacket.packs) {
             for (const packName in blacket.packs) {
                 if (!blacket.packs[packName].hidden) {
-                    packOptions += `<option value="${packName}">${packName} (${blacket.packs[packName].price.toLocaleString()} </option>`;
+                    packOptions += `<option value="${packName}">${packName} (${blacket.packs[packName].price.toLocaleString()} Tokens)</option>`;
                 }
             }
         } else {
@@ -50,6 +65,7 @@ $(document).ready(function() {
                             <p>Select a pack and the quantity you wish to open.</p>
                             <div style="margin-top: 15px;">
                                 <label for="packSelect" style="display: block; margin-bottom: 5px; font-weight: bold;">Choose a Pack:</label>
+                                <select id="packSelect" class="styles__select___4kC90-camelCase">
                                     ${packOptions}
                                 </select>
                             </div>
@@ -114,10 +130,11 @@ $(document).ready(function() {
         updateInputStates();
  
         $openPacksButton.click(async function() {
-            const selectedPack = $packSelect.val();
-            let quantity = 0;
-            const packPrice = blacket.packs[selectedPack] ? blacket.packs[selectedPack].price : 0;
- 
+    const selectedPack = $packSelect.val();
+    let quantity = 0;
+    const packPrice = blacket.packs[selectedPack] ? blacket.packs[selectedPack].price : 0;
+    breakOpening = false
+
             if ($useAllTokens.is(':checked')) {
                 if (packPrice === 0) {
                      blacket.createToast({
@@ -182,110 +199,110 @@ $(document).ready(function() {
                 return;
             }
  
-            $('#bulkPackModal').remove();
-            $('body').css('overflow', 'auto');
- 
-            if (typeof blacket !== 'undefined' && blacket.createToast) {
-                blacket.createToast({
-                    title: "Input Received",
-                    message: `Opening ${selectedPack} ${quantity} times!`,
-                    icon: "/content/blooks/Success.webp",
-                    time: 3000
-                });
-            }
- 
-            const blooksObtained = {};
- 
-            const originalOpenPack = blacket.openPack;
- 
-            blacket.openPack = (packName) => {
-                return new Promise(resolve => {
-                    blacket.startLoading();
- 
-                    setTimeout(() => {
-                        blacket.user.tokens -= blacket.packs[packName].price;
-                        $("#tokenBalance > div:nth-child(2)").html(blacket.user.tokens.toLocaleString());
- 
-                        blacket.requests.post("/worker3/open", { pack: packName }, (data) => {
-                            blacket.stopLoading();
- 
-                            if (data.error) {
-                                blacket.user.tokens += blacket.packs[packName].price;
-                                $("#tokenBalance > div:nth-child(2)").html(blacket.user.tokens.toLocaleString());
-                                blacket.createToast({
-                                    title: "Error",
-                                    message: data.reason,
-                                    icon: "/content/blooks/Error.webp",
-                                    time: 5000
-                                });
-                                resolve(null); // Resolve with null for error
-                                return;
-                            }
- 
-                            if (!blacket.user.blooks[data.blook]) {
-                                blacket.user.blooks[data.blook] = 1;
-                            } else {
-                                blacket.user.blooks[data.blook]++;
-                            }
- 
-                            resolve(data.blook);
-                        });
-                    }, 1000);
-                });
-            };
- 
-            let openedCount = 0;
- 
-            for (let i = 0; i < quantity; i++) {
-                if (blacket.user.tokens < packPrice) {
+    $('#bulkPackModal').remove();
+    $('body').css('overflow', 'auto');
+
+    if (typeof blacket !== 'undefined' && blacket.createToast) {
+        blacket.createToast({
+            title: "Input Received",
+            message: `Opening ${selectedPack} ${quantity} times!`,
+            icon: "/content/blooks/Success.webp",
+            time: 3000
+        });
+    }
+
+    const blooksObtained = {};
+    const originalOpenPack = blacket.openPack;
+
+    blacket.openPack = (packName) => {
+        return new Promise(resolve => {
+            blacket.startLoading();
+            blacket.requests.post("/worker3/open", { pack: packName }, (data) => {
+                blacket.stopLoading();
+                if (data.error) {
                     blacket.createToast({
-                        title: "Warning",
-                        message: `Not enough tokens to open more packs. Opened ${openedCount} of ${quantity}.`,
+                        title: "Error",
+                        message: data.reason,
                         icon: "/content/blooks/Error.webp",
                         time: 5000
                     });
-                    break;
+                    resolve(null);
+                    return;
                 }
- 
-                const obtainedBlookName = await blacket.openPack(selectedPack);
- 
-                if (obtainedBlookName) {
-                    blooksObtained[obtainedBlookName] = (blooksObtained[obtainedBlookName] || 0) + 1;
+                blacket.user.tokens -= blacket.packs[packName].price;
+                $("#tokenBalance > div:nth-child(2)").html(blacket.user.tokens.toLocaleString());
+                if (!blacket.user.blooks[data.blook]) {
+                    blacket.user.blooks[data.blook] = 1;
+                } else {
+                    blacket.user.blooks[data.blook]++;
                 }
-               
-                openedCount++;
-            }
- 
-            blacket.openPack = originalOpenPack;
- 
-            let finalMessage = `Successfully opened ${openedCount} packs!`;
-            if (Object.keys(blooksObtained).length > 0) {
-                finalMessage += `<br><br><b>Blooks Obtained:</b><br>`;
-                for (const blookName in blooksObtained) {
-                    const blookInfo = blacket.blooks[blookName];
-                    const blookImage = blookInfo ? blookInfo.image : '/content/blooks/Error.webp';
-                    const blookRarity = blookInfo ? blookInfo.rarity : 'Unknown';
-                    const rarityColor = blacket.rarities[blookRarity] ? blacket.rarities[blookRarity].color : '#333333';
- 
-                    finalMessage += `
-                        <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                            <img src="${blookImage}" alt="${blookName}" style="width: 30px; height: 30px; margin-right: 10px; border-radius: 5px; object-fit: contain;">
-                            <span>${blookName}: ${blooksObtained[blookName]} (<span style="color: ${rarityColor};">${blookRarity}</span>)</span>
-                        </div>
-                    `;
-                }
-            } else {
-                finalMessage += `<br><br>No new blooks were obtained in this session (or all were duplicates).`;
-            }
- 
-            showCustomModal({
-                title: "Finished",
-                message: finalMessage
+                resolve(data.blook);
             });
- 
-            $openPacksButton.prop('disabled', false).find('.styles__front___vcvuy-camelCase').text('Open Packs');
-            $cancelBulkOpenButton.prop('disabled', false);
         });
+    };
+
+   let extra_delay = 0; // You can set this to 0 or a small value for a bit more delay
+
+let openedCount = 0;
+for (let i = 0; i < quantity; i++) {
+    if (breakOpening) {
+        blacket.createToast?.({
+            title: "Stopped",
+            message: `Opening stopped by user after ${openedCount} packs.`,
+            icon: "/content/blooks/Error.webp",
+            time: 3000
+        });
+        break;
+    }
+    if (blacket.user.tokens < packPrice) {
+        blacket.createToast({
+            title: "Warning",
+            message: `Not enough tokens to open more packs. Opened ${openedCount} of ${quantity}.`,
+            icon: "/content/blooks/Error.webp",
+            time: 5000
+        });
+        break;
+    }
+    const obtainedBlookName = await blacket.openPack(selectedPack);
+    if (obtainedBlookName) {
+        blooksObtained[obtainedBlookName] = (blooksObtained[obtainedBlookName] || 0) + 1;
+        const rarity = blacket.blooks[obtainedBlookName]?.rarity;
+        const wait = blacket.rarities[rarity]?.wait ?? 0;
+        await new Promise(r => setTimeout(r, wait + extra_delay));
+    }
+    openedCount++;
+}
+
+    blacket.openPack = originalOpenPack;
+
+    let finalMessage = `Successfully opened ${openedCount} packs!`;
+    if (Object.keys(blooksObtained).length > 0) {
+        finalMessage += `<br><br><b>Blooks Obtained:</b><br>`;
+        for (const blookName in blooksObtained) {
+            const blookInfo = blacket.blooks[blookName];
+            const blookImage = blookInfo ? blookInfo.image : '/content/blooks/Error.webp';
+            const blookRarity = blookInfo ? blookInfo.rarity : 'Unknown';
+            const rarityColor = blacket.rarities[blookRarity] ? blacket.rarities[blookRarity].color : '#333333';
+
+            finalMessage += `
+                <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                    <img src="${blookImage}" alt="${blookName}" style="width: 30px; height: 30px; margin-right: 10px; border-radius: 5px; object-fit: contain;">
+                    <span>${blookName}: ${blooksObtained[blookName]} (<span style="color: ${rarityColor};">${blookRarity}</span>)</span>
+                </div>
+            `;
+        }
+    } else {
+        finalMessage += `<br><br>No new blooks were obtained in this session (or all were duplicates).`;
+    }
+
+    showCustomModal({
+        title: "Finished",
+        message: finalMessage
+    });
+
+    $openPacksButton.prop('disabled', false).find('.styles__front___vcvuy-camelCase').text('Open Packs');
+    $cancelBulkOpenButton.prop('disabled', false);
+});
  
         $cancelBulkOpenButton.click(function() {
             $('#bulkPackModal').remove();
@@ -336,5 +353,3 @@ $(document).ready(function() {
  
     $('.styles__instantButton___2ezEk-camelCase').after($triggerButton);
 });
-
-//const delay = blacket.rarities[blacket.blooks[attainedBlook].rarity].wait + extra_delay; This is smth from Syfe 
