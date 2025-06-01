@@ -80,7 +80,7 @@ $(document).ready(function() {
                                 <input type="checkbox" id="useAllTokens" style="margin-right: 10px;">
                                 <label for="useAllTokens" style="font-weight: bold;">Use All Available Tokens</label>
                            </div>
-                            <p id="bulkOpenStatus" style="margin-top: 15px; font-weight: bold; color: #333;"></p>
+                            <p id="bulkOpenStatus" style="font-size: 15px; margin-top: 5px; font-weight: bold; color: #fff;">Click ctrl + alt + d to cancel</p>
                         </div>
                     </div>
                     <div class="styles__holder___3CEfN-camelCase">
