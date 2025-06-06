@@ -126,7 +126,7 @@ $(document).ready(function() {
         };
         $useAllTokens.on('change', updateInputStates);
         $tokensToUse.on('input', updateInputStates);
-        $packQuantity.on('input', updateInputStates); // To handle if user types in quantity first
+        $packQuantity.on('input', updateInputStates);
         updateInputStates();
  
         $openPacksButton.click(async function() {
@@ -241,7 +241,7 @@ $(document).ready(function() {
         });
     };
 
-   let extra_delay = 0; // You can set this to 0 or a small value for a bit more delay
+   let extra_delay = 0;
 
 let openedCount = 0;
 for (let i = 0; i < quantity; i++) {
@@ -346,7 +346,7 @@ for (let i = 0; i < quantity; i++) {
     function checkBlacketReady() {
         if (typeof blacket !== 'undefined' && blacket.user) {
         } else {
-            setTimeout(checkBlacketReady, 100); // Check again after a short delay
+            setTimeout(checkBlacketReady, 100);
         }
     }
     checkBlacketReady();
