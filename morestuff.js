@@ -1,11 +1,11 @@
-function() {
+(() => {
     function show(set) {
         const { title, message } = set;
         const modal = document.createElement('div');
         modal.id = 'message';
         modal.className = 'arts__modal___VpEAD-camelCase';
         modal.innerHTML = `
-            <form class="styles__container___1BPm9-camelCase" style="width: 95%;">
+            <form class="styles__container___1BPm9-camelCase" style="width: 25%;">
                 <div class="styles__text___KSL4--camelCase">
                     <div style="font-size: 0.911vw; line-height: 0.911vw;">
                         <h2>${title}</h2>
@@ -67,7 +67,7 @@ function() {
                     <div>
                         <div style="margin-top: 15px;">
                             <label for="selector" style="display: block; margin-bottom: 5px; font-weight: bold;">Choose a Pack:</label>
-                            <select id="selector" class="styles__select___4kC90-camelCase">
+                            <select id="selector" style="width: 10vw;" class="styles__select___4kC90-camelCase">
                                 ${packs}
                             </select>
                         </div>
@@ -292,7 +292,7 @@ function() {
                     const rarityColor = blacket.rarities[blookRarity] ? blacket.rarities[blookRarity].color : '#ffffff';
 
                     end += `
-                        <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 5px; left: 20%; position: relative;">
                             <img src="${blookImage}" alt="${blookName}" style="width: 30px; height: 30px; margin-right: 10px; border-radius: 5px; object-fit: contain;">
                             <span>${blookName}: ${obtained[blookName]} (<span style="color: ${rarityColor};">${blookRarity}</span>)</span>
                         </div>
