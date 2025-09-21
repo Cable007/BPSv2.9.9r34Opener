@@ -1,4 +1,4 @@
-$(document).ready(function() {
+(function() {
     function showCustomModal(options) {
         const { title, message } = options;
         const customModalHtml = `
@@ -352,4 +352,4 @@ for (let i = 0; i < quantity; i++) {
     checkBlacketReady();
  
     $('.styles__instantButton___2ezEk-camelCase').after($triggerButton);
-});
+};
