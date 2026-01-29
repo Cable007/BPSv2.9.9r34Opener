@@ -221,9 +221,7 @@
 
             blacket.openPack = (pack) => {
                 return new Promise(resolve => {
-                    blacket.startLoading();
                     blacket.requests.post("/worker3/open", { pack: pack }, (data) => {
-                        blacket.stopLoading();
                         if (data.error) {
                             blacket.createToast({
                                 title: "Error",
